@@ -64,35 +64,40 @@ def main():
 
 @app.route('/upload', methods=['POST'])
 def clean_and_insert_data():
-    # Get the uploaded file from the request
-    file = request.files['fileToUpload']
 
-    # Read the uploaded file
-    if file.filename.endswith('.csv'):
-        df = pd.read_csv(file)
-    elif file.filename.endswith('.xlsx'):
-        df = pd.read_excel(file)
-    else:
-        return "Unsupported file format. Only CSV and XLSX files are supported."
+    try:
+        # Get the uploaded file from the request
+        file = request.files['fileToUpload']
 
-    df = pd.DataFrame(df)
+        # Read the uploaded file
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        elif file.filename.endswith('.xlsx'):
+            df = pd.read_excel(file)
+        else:
+            return "Unsupported file format. Only CSV and XLSX files are supported."
 
-    cleaned_df = clean_data_dataframe(df)
+        df = pd.DataFrame(df)
 
-    # Convert the cleaned DataFrame to a list of dictionaries
-    documents = cleaned_df.to_dict(orient='records')
+        cleaned_df = clean_data_dataframe(df)
 
-    # Connect to MongoDB
-    connect_to_mongodb()
+        # Convert the cleaned DataFrame to a list of dictionaries
+        documents = cleaned_df.to_dict(orient='records')
 
-    # Insert the documents into MongoDB in batches
-    insert_documents_in_batches(documents)
+        # Connect to MongoDB
+        connect_to_mongodb()
 
-    # Disconnect from MongoDB
-    disconnect_from_mongodb()
+        # Insert the documents into MongoDB in batches
+        insert_documents_in_batches(documents)
 
-    return "Data uploaded and inserted into MongoDB!"
+        # Disconnect from MongoDB
+        disconnect_from_mongodb()
+
+        return "Data uploaded and inserted into MongoDB!"
+
+    except:
+        return "Something went wrong!"
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
