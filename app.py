@@ -6,10 +6,12 @@ app = Flask(__name__)
 
 BATCH_SIZE = 1000
 
+monogoDB_string = 'mongodb+srv://mukul:YWb0vrGQI@sapstore.kz6z8ks.mongodb.net'
+
 
 def connect_to_mongodb():
     global client, db, collection
-    client = MongoClient('mongodb+srv://mukul:YWb0vrGQI@sapstore.kz6z8ks.mongodb.net/')
+    client = MongoClient(monogoDB_string)
     db = client['test']
     collection = db['mukulsheets']
 
@@ -17,6 +19,7 @@ def connect_to_mongodb():
 def disconnect_from_mongodb():
     global client
     client.close()
+
 
 def clean_data_dataframe(df):
     # Remove the rows matching the string condition
@@ -31,7 +34,8 @@ def clean_data_dataframe(df):
     df = df.drop(df.columns[columns_to_drop], axis=1)
 
     # Assign column names
-    column_names = ['material no.', 'description', 'bin no.', 'val.stock', 'max.price', 'value', 'uom', 'storage loc']
+    column_names = ['material no.', 'description', 'bin no.',
+                    'val.stock', 'max.price', 'value', 'uom', 'storage loc']
     df.columns = column_names
 
     return df
