@@ -17,11 +17,6 @@ def connect_to_mongodb():
     collection = db['mukulsheets']
 
 
-def disconnect_from_mongodb():
-    global client
-    client.close()
-
-
 def clean_data_dataframe(df):
     # Remove the rows matching the string condition
     df = df.loc[~df.eq('Material no:').any(axis=1)]
@@ -56,14 +51,6 @@ def insert_documents_in_batches(documents):
     if remainder > 0:
         batch_documents = documents[-remainder:]
         collection.insert_many(batch_documents)
-
-
-def connect_to_mongodb():
-    global client, db, collection
-    client = MongoClient(
-        'mongodb+srv://mukul:YWb0vrGQI@sapstore.kz6z8ks.mongodb.net/')
-    db = client['test']
-    collection = db['mukulsheets']
 
 
 def disconnect_from_mongodb():
