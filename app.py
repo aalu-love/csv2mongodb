@@ -1,6 +1,7 @@
 import pandas as pd
 from flask import Flask, render_template, request
 from pymongo import MongoClient
+import threading
 
 app = Flask(__name__)
 
@@ -57,6 +58,30 @@ def insert_documents_in_batches(documents):
         collection.insert_many(batch_documents)
 
 
+def connect_to_mongodb():
+    global client, db, collection
+    client = MongoClient(
+        'mongodb+srv://mukul:YWb0vrGQI@sapstore.kz6z8ks.mongodb.net/')
+    db = client['test']
+    collection = db['mukulsheets']
+
+
+def disconnect_from_mongodb():
+    global client
+    client.close()
+
+
+def upload_data_in_background(documents):
+    # Connect to MongoDB
+    connect_to_mongodb()
+
+    # Insert the documents into MongoDB in batches
+    insert_documents_in_batches(documents)
+
+    # Disconnect from MongoDB
+    disconnect_from_mongodb()
+
+
 @app.route('/')
 def main():
     return render_template('index.html')
@@ -64,40 +89,31 @@ def main():
 
 @app.route('/upload', methods=['POST'])
 def clean_and_insert_data():
+    # Get the uploaded file from the request
+    file = request.files['fileToUpload']
 
-    try:
-        # Get the uploaded file from the request
-        file = request.files['fileToUpload']
+    # Read the uploaded file
+    if file.filename.endswith('.csv'):
+        df = pd.read_csv(file)
+    elif file.filename.endswith('.xlsx'):
+        df = pd.read_excel(file)
+    else:
+        return "Unsupported file format. Only CSV and XLSX files are supported."
 
-        # Read the uploaded file
-        if file.filename.endswith('.csv'):
-            df = pd.read_csv(file)
-        elif file.filename.endswith('.xlsx'):
-            df = pd.read_excel(file)
-        else:
-            return "Unsupported file format. Only CSV and XLSX files are supported."
+    df = pd.DataFrame(df)
 
-        df = pd.DataFrame(df)
+    cleaned_df = clean_data_dataframe(df)
 
-        cleaned_df = clean_data_dataframe(df)
+    # Convert the cleaned DataFrame to a list of dictionaries
+    documents = cleaned_df.to_dict(orient='records')
 
-        # Convert the cleaned DataFrame to a list of dictionaries
-        documents = cleaned_df.to_dict(orient='records')
+    # Start a new thread to upload data in the background
+    upload_thread = threading.Thread(
+        target=upload_data_in_background, args=(documents,))
+    upload_thread.start()
 
-        # Connect to MongoDB
-        connect_to_mongodb()
-
-        # Insert the documents into MongoDB in batches
-        insert_documents_in_batches(documents)
-
-        # Disconnect from MongoDB
-        disconnect_from_mongodb()
-
-        return "Data uploaded and inserted into MongoDB!"
-
-    except:
-        return "Something went wrong!"
+    return "Data upload process started in the background!"
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
