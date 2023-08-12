@@ -7,14 +7,19 @@ app = Flask(__name__)
 
 BATCH_SIZE = 1000
 
-monogoDB_string = 'mongodb+srv://mukul:YWb0vrGQI@sapstore.kz6z8ks.mongodb.net'
+monogoDB_string = 'mongodb+srv://mukul:YWb0vrGQI@sapstore.kz6z8ks.mongodb.net/test'
 
 
 def connect_to_mongodb():
     global client, db, collection
-    client = MongoClient(monogoDB_string)
-    db = client['test']
-    collection = db['mukulsheets']
+    try:
+        client = MongoClient(monogoDB_string)
+        db = client['test']
+        collection = db['mukulsheets']
+        return client, collection
+    except Exception as e:
+        print(f"Error connecting to MongoDB: {str(e)}")
+        return None, None
 
 
 def clean_data_dataframe(df):
@@ -72,6 +77,18 @@ def upload_data_in_background(documents):
 @app.route('/')
 def main():
     return render_template('index.html')
+
+
+@app.route('/testConnection')
+def test_connection():
+    try:
+        a, b = connect_to_mongodb()
+        if a is not None and b is not None:
+            return "Connected to MongoDB successfully!"
+        else:
+            return "Failed to connect to MongoDB."
+    except Exception as e:
+        return f"Some error occurred while connecting to MongoDB: {str(e)}"
 
 
 @app.route('/upload', methods=['POST'])
