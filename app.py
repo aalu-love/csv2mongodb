@@ -7,13 +7,13 @@ app = Flask(__name__)
 
 BATCH_SIZE = 1000
 
-monogoDB_string = 'mongodb+srv://mukul:YWb0vrGQI@sapstore.kz6z8ks.mongodb.net/test'
+mongoDB_string = 'mongodb+srv://mukul:YWb0vrGQI@sapstore.kz6z8ks.mongodb.net/test'
 
 
 def connect_to_mongodb():
     global client, db, collection
     try:
-        client = MongoClient(monogoDB_string)
+        client = MongoClient(mongoDB_string)
         db = client['test']
         collection = db['mukulsheets']
         return client, collection
