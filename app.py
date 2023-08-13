@@ -31,7 +31,7 @@ def clean_data_dataframe(df):
     df = df.fillna('N/A')
 
     # Drop columns by index
-    columns_to_drop = [0, 5]
+    columns_to_drop = [0, 6]
     df = df.drop(df.columns[columns_to_drop], axis=1)
 
     # Assign column names
